@@ -1,0 +1,110 @@
+package templates
+
+import "github.com/graytonio/ffxivquesttracker/pkg/db"
+import "fmt"
+
+templ QuestRow(quest db.Quest) {
+	<tr>
+		<td>
+			<div class="flex items-center gap-3">
+				<div>
+					<div class="font-bold">{ quest.Name }</div>
+					<div class="text-sm opacity-50">{ quest.Location }</div>
+				</div>
+			</div>
+		</td>
+		<td>{ quest.Category.Section }</td>
+		<td>{ quest.Category.Category }</td>
+		<th>
+			<label>
+				<input
+					type="checkbox"
+					class="checkbox"
+					checked?={ quest.Completed }
+					hx-target="closest tr"
+					hx-swap="outerHTML"
+					if quest.Completed {
+						hx-delete={ fmt.Sprintf("/%d", quest.ID) }
+					} else {
+						hx-post={ fmt.Sprintf("/%d", quest.ID) }
+					}
+				/>
+			</label>
+		</th>
+	</tr>
+}
+
+templ QuestList(quests []db.Quest) {
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Section</th>
+				<th>Category</th>
+				<th>Completed</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, q := range quests {
+				@QuestRow(q)
+			}
+		</tbody>
+	</table>
+}
+
+templ QuestCategories(sections [][][]db.Quest) {
+	for _, categories := range sections {
+		<details class="collapse my-2">
+			<summary class="collapse-title text-xl  bg-base-200 font-medium mb-2">{ categories[0][0].Category.Section }</summary>
+			<div class="collapse-content bg-base-100">
+				for _, quests := range categories {
+					<details class="collapse  my-2">
+						<summary class="collapse-title bg-base-200 text-xl font-medium mb-2">{ quests[0].Category.Category }</summary>
+						<div class="collapse-content bg-base-100">
+							@QuestList(quests)
+						</div>
+					</details>
+				}
+			</div>
+		</details>
+	}
+}
+
+templ authHeader(user *db.User) {
+	if user == nil {
+		<a href="/auth/discord" class="btn btn-square btn-ghost">
+			Login
+		</a>
+	} else {
+		<div class="dropdown dropdown-end">
+			<div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+				<div class="w-10 rounded-full">
+					<img class="rounded-full" alt="User Avatar" src={ fmt.Sprintf("https://cdn.discordapp.com/avatars/%s/%s.png", user.DiscordID, user.AvatarHash) }/>
+				</div>
+			</div>
+			<ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+				<li><a href="/logout">Logout</a></li>
+			</ul>
+		</div>
+	}
+}
+
+templ Index(quests [][][]db.Quest, user *db.User) {
+	<head>
+		<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="/assets/styles.css"/>
+	</head>
+	<body>
+		<div class="navbar bg-base-100">
+			<div class="flex-1">
+				<a class="btn btn-ghost text-xl">FFXIV Quest Tracker</a>
+			</div>
+			<div class="flex-none">
+				@authHeader(user)
+			</div>
+		</div>
+		<div class="overflow-x-auto">
+			@QuestCategories(quests)
+		</div>
+	</body>
+}
