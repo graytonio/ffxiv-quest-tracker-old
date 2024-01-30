@@ -9,12 +9,14 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/toorop/gin-logrus v0.0.0-20210225092905-2c785434f26f
+	github.com/wader/gormstore v0.0.0-20240126165642-628a5d26f487
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	gorm.io/gorm v1.25.6
 )
 
 require (
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/jinzhu/gorm v1.9.16 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	gorm.io/driver/sqlite v1.5.4 // indirect
 )
