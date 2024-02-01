@@ -51,8 +51,14 @@ func main() {
 	r.GET("/auth/discord/callback", h.DiscordAuthCallback)
 	r.GET("/logout", h.Logout)
 
-	r.POST("/:id", h.CompleteQuest)
-	r.DELETE("/:id", h.UncompleteQuest)
+	r.POST("/:id", h.UpdateQuest(true))
+	r.DELETE("/:id", h.UpdateQuest(false))
+
+	r.POST("/section", h.UpdateSection(true))
+	r.DELETE("/section", h.UpdateSection(false))
+
+	r.POST("/category", h.UpdateCategory(true))
+	r.DELETE("/category", h.UpdateCategory(false))
 
 	r.Run()
 }

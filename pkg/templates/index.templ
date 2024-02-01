@@ -52,18 +52,49 @@ templ QuestList(quests []db.Quest) {
 	</table>
 }
 
-templ QuestCategory(title string, quests []db.Quest) {
-	<collapse-section title={ title }>
-		@QuestList(quests)
-	</collapse-section>
+templ QuestContainer(title string, complete templ.Component) {
+	<details class="collapse my-2">
+		<summary class="collapse-title text-xl bg-base-200 font-medium mb-2">
+			<div class="flex">
+				<complete-counter class="flex-1" title={ title }></complete-counter>
+				@complete
+			</div>
+		</summary>
+		<div class="collapse-content bg-base-100">
+			{ children... }
+		</div>
+	</details>
+}
+
+templ CompleteSectionButton(title string, resource string, complete bool) {
+	<input
+		type="checkbox"
+		class="checkbox"
+		checked?={ complete }
+		hx-target="closest details"
+		hx-swap="outerHTML"
+		hx-vals={fmt.Sprintf(`{"key": "%s"}`, title)}
+		hx-ext='json-enc'
+		if complete {
+			hx-delete={fmt.Sprintf("/%s", resource)}
+		} else {
+			hx-post={ fmt.Sprintf("/%s", resource) }
+		}
+	/>
 }
 
 templ QuestSection(title string, categories map[string][]db.Quest) {
-	<collapse-section title={ title }>
-		for _, key := range SortKeys(categories) {
-			@QuestCategory(key, categories[key])
+	@QuestContainer(title, CompleteSectionButton(title, "section", SectionComplete(categories))) {
+		for _, category := range SortKeys(categories) {
+			@QuestCategory(category, categories[category])
 		}
-	</collapse-section>
+	}
+}
+
+templ QuestCategory(title string, quests []db.Quest) {
+	@QuestContainer(title, CompleteSectionButton(title, "category", CategoryComplete(quests))) {
+		@QuestList(quests)
+	}
 }
 
 templ AuthHeader(user *db.User) {
@@ -85,9 +116,10 @@ templ AuthHeader(user *db.User) {
 	}
 }
 
-templ Index(quests CategorizedQuests, user *db.User) {
+templ Index(sections CategorizedQuests, user *db.User) {
 	<head>
 		<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+		<script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
 		<script defer src="/assets/components.js"></script>
 		<link rel="stylesheet" href="/assets/styles.css"/>
 	</head>
@@ -101,11 +133,10 @@ templ Index(quests CategorizedQuests, user *db.User) {
 				@AuthHeader(user)
 			</div>
 		</div>
-
 		// Main Content
 		<div class="overflow-x-auto">
-			for _, key := range SortKeys(quests) {
-				@QuestSection(key, quests[key])
+			for _, section := range SortKeys(sections) {
+				@QuestSection(section, sections[section])
 			}
 		</div>
 	</body>

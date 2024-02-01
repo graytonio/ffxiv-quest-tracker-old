@@ -17,18 +17,18 @@ import (
 type Handler struct {
 	db           *gorm.DB
 	discordOauth *oauth2.Config
-	logger logrus.FieldLogger
+	logger       logrus.FieldLogger
 }
 
 type HandlerConfig struct {
-	DiscordClientID string
+	DiscordClientID     string
 	DiscordClientSecret string
-	BaseDomain string
+	BaseDomain          string
 }
 
 func NewHandler(db *gorm.DB, logger logrus.FieldLogger, config *HandlerConfig) *Handler {
 	return &Handler{
-		db: db,
+		db:     db,
 		logger: logger,
 		discordOauth: &oauth2.Config{
 			ClientID:     config.DiscordClientID,
@@ -56,70 +56,118 @@ func (h *Handler) IndexPage(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	
+
 	c.HTML(http.StatusOK, "", templates.Index(templates.CategorizeQuests(quests), user))
 }
 
-func (h *Handler) CompleteQuest(c *gin.Context) {
-	user, err := h.getUserFromSession(sessions.Default(c))
-	if err != nil {
-	  c.AbortWithError(http.StatusInternalServerError, err)
-	  return
-	}
-
-	questID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	quest := db.Quest{ID: questID}
-	err = h.db.First(&quest, quest).Error
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	quest.Completed = true
-
-	if user != nil {
-		err = h.db.Model(user).Association("CompletedQuests").Append(&quest)
+func (h *Handler) UpdateQuest(complete bool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, err := h.getUserFromSession(sessions.Default(c))
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
+
+		questID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		quest := db.Quest{ID: questID}
+		err = h.db.First(&quest, quest).Error
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		quest.Completed = complete
+
+		if user != nil {
+			err = db.UpdateUserQuests(h.db, complete, user, quest)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+		}
+
+		c.HTML(http.StatusOK, "", templates.QuestRow(quest))
 	}
-	
-	c.HTML(http.StatusOK, "", templates.QuestRow(quest))
 }
 
-func (h *Handler) UncompleteQuest(c *gin.Context) {
-	user, err := h.getUserFromSession(sessions.Default(c))
-	if err != nil {
-	  c.AbortWithError(http.StatusInternalServerError, err)
-	  return
-	}
-
-	questID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	
-	quest := db.Quest{ID: questID}
-	err = h.db.First(&quest, quest).Error
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	quest.Completed = false
-
-	if user != nil {
-		err = h.db.Model(user).Association("CompletedQuests").Delete(&quest)
+func (h *Handler) UpdateSection(complete bool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, err := h.getUserFromSession(sessions.Default(c))
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
+
+		var requestData struct {
+			Key string `json:"key"`
+		}
+		c.BindJSON(&requestData)
+		section := requestData.Key
+
+		var quests []db.Quest
+		err = h.db.Where(&db.Quest{Category: db.Category{Section: section}}).Find(&quests).Error
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		logrus.WithField("section", section).WithField("quests", len(quests)).Info("Completing Quests")
+		for i := range quests {
+			quests[i].Completed = complete
+		}
+
+		if user != nil {
+			err = db.UpdateUserQuests(h.db, complete, user, quests...)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+		}
+
+		categorized := templates.CategorizeQuests(quests)
+		c.HTML(http.StatusOK, "", templates.QuestSection(section, categorized[section]))
 	}
-	
-	c.HTML(http.StatusOK, "", templates.QuestRow(quest))
+
+}
+
+func (h *Handler) UpdateCategory(complete bool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, err := h.getUserFromSession(sessions.Default(c))
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		var requestData struct {
+			Key string `json:"key"`
+		}
+		c.BindJSON(&requestData)
+		category := requestData.Key
+
+		var quests []db.Quest
+		err = h.db.Where(&db.Quest{Category: db.Category{Category: category}}).Find(&quests).Error
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		logrus.WithField("section", category).WithField("quests", len(quests)).Info("Completing Quests")
+		for i := range quests {
+			quests[i].Completed = complete
+		}
+
+		if user != nil {
+			err = db.UpdateUserQuests(h.db, complete, user, quests...)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+		}
+
+		c.HTML(http.StatusOK, "", templates.QuestCategory(category, quests))
+	}
 }

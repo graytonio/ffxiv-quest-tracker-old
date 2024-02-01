@@ -30,3 +30,22 @@ func CategorizeQuests(quests []db.Quest) (results CategorizedQuests) {
 	
 	return results
 }
+
+func SectionComplete(section map[string][]db.Quest) bool {
+	for _, category := range section {
+		if !CategoryComplete(category) {
+			return false
+		}
+	}
+	return true
+}
+
+func CategoryComplete(category []db.Quest) bool {
+	for _, quest := range category {
+		if !quest.Completed {
+			return false
+		}
+	}
+
+	return true
+}

@@ -28,3 +28,19 @@ func FetchQuestListings(db *gorm.DB, user *User) (quests []Quest, err error) {
 			Scan(&quests).Error
 	return quests, err
 }
+
+func UpdateUserQuests(db *gorm.DB, complete bool, user *User, quests ...Quest) error {
+	if complete {
+		return CompleteUserQuest(db, user, quests...)
+	}
+
+	return UncompleteUserQuest(db, user, quests...)
+}
+
+func CompleteUserQuest(db *gorm.DB, user *User, quests ...Quest) error {
+	return db.Model(user).Association("CompletedQuests").Append(quests)
+}
+
+func UncompleteUserQuest(db *gorm.DB, user *User, quests ...Quest) error {
+	return db.Model(user).Association("CompletedQuests").Delete(quests)
+}

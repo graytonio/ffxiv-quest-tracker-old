@@ -5,6 +5,8 @@ type Category struct {
 	Section  string `json:"section"`
 }
 
+// TODO Make this dynamic as well
+
 var CategoryMap = map[int]Category{
 	0: {
 
