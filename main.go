@@ -41,7 +41,7 @@ func main() {
 	r.HTMLRender = &templates.TemplRender{}
 	r.Use(ginlogrus.Logger(log), gin.Recovery())
 	r.Use(sessions.Sessions("usersessions", store))
-	r.Static("/assets", "/assets/dist")
+	r.Static("/assets", "assets/dist")
 	
 	r.GET("/load", h.LoadQuests)
 
