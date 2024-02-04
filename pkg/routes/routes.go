@@ -75,7 +75,7 @@ func (h *Handler) UpdateQuest(complete bool) gin.HandlerFunc {
 		}
 
 		quest := db.Quest{ID: questID}
-		err = h.db.First(&quest, quest).Error
+		err = h.db.Joins("Genre").First(&quest, quest).Error
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
