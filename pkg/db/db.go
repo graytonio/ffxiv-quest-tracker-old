@@ -21,7 +21,7 @@ func FetchUserQuests(db *gorm.DB, user *User) (quests []Quest, err error) {
 	tx := db.Model(&Quest{}).
 		Joins("Genre").
 		Select("quests.*, CASE WHEN user_quests.quest_id IS NOT NULL THEN true ELSE false END AS completed").
-		Order("Genre.name ASC, location ASC, sort_id ASC, id ASC")
+		Order("Genre.name ASC, sort_id ASC, id ASC")
 
 	if user != nil {
 		tx = tx.Joins("LEFT JOIN user_quests ON quests.id = user_quests.quest_id AND user_quests.user_id = ?", user.ID)
