@@ -51,7 +51,7 @@ func (h *Handler) IndexPage(c *gin.Context) {
 		return
 	}
 
-	quests, err := db.FetchQuestListings(h.db, user)
+	quests, err := db.FetchUserQuests(h.db, user)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -108,8 +108,7 @@ func (h *Handler) UpdateSection(complete bool) gin.HandlerFunc {
 		c.BindJSON(&requestData)
 		section := requestData.Key
 
-		var quests []db.Quest
-		err = h.db.Where(&db.Quest{Category: db.Category{Section: section}}).Find(&quests).Error
+		quests, err := db.QuestsInSection(h.db, section)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -148,8 +147,7 @@ func (h *Handler) UpdateCategory(complete bool) gin.HandlerFunc {
 		c.BindJSON(&requestData)
 		category := requestData.Key
 
-		var quests []db.Quest
-		err = h.db.Where(&db.Quest{Category: db.Category{Category: category}}).Find(&quests).Error
+		quests, err := db.QuestsInCategory(h.db, category)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return

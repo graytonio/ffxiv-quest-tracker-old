@@ -13,8 +13,8 @@ templ QuestRow(quest db.Quest) {
 				</div>
 			</div>
 		</td>
-		<td>{ quest.Category.Section }</td>
-		<td>{ quest.Category.Category }</td>
+		<td>{ quest.Genre.Name }</td>
+		<td>{fmt.Sprint(quest.PercentageComplete)}%</td>
 		<th>
 			<label>
 				<input
@@ -39,9 +39,10 @@ templ QuestList(quests []db.Quest) {
 		<thead>
 			<tr>
 				<th>Name</th>
-				<th>Section</th>
-				<th>Category</th>
+				<th>Genre</th>
+				<th>Own</th>
 				<th>Completed</th>
+				
 			</tr>
 		</thead>
 		<tbody>

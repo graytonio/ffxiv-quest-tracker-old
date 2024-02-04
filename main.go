@@ -25,6 +25,19 @@ func main() {
 	log.SetOutput(os.Stdout)
 	log.SetReportCaller(true)
 
+
+	if os.Getenv("RUN_MIGRATION") == "true" {
+		logrus.Info("running migrations")
+		err = db.RunMigrations(dbConn)
+		if err != nil {
+		  logrus.WithError(err).Fatal("failed to run migrations")
+		}
+		logrus.Info("migrations completed successfully")
+
+		os.Exit(0)
+	}
+
+
 	h := routes.NewHandler(
 		dbConn, 
 		log,
@@ -43,7 +56,7 @@ func main() {
 	r.Use(sessions.Sessions("usersessions", store))
 	r.Static("/assets", "assets/dist")
 	
-	r.GET("/load", h.LoadQuests)
+	r.GET("/load", h.LoadData)
 
 	r.GET("/", h.IndexPage)
 

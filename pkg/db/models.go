@@ -11,14 +11,21 @@ type User struct {
 	CompletedQuests []Quest `gorm:"many2many:user_quests"`
 }
 
+type Genre struct {
+	ID   int `json:"id" gorm:"primarykey"`
+	Name string `json:"name" gorm:"unqueIndex"`
+	Category string `json:"category" gorm:"index"`
+	Section string `json:"section" gorm:"index"`
+}
+
 type Quest struct {
-	ID                 int      `json:"i" gorm:"primarykey"`
-	Name               string   `json:"n"`
-	GroupID            int      `json:"g"`
-	Category           Category `gorm:"embedded;embeddedPrefix:category_"`
-	Location           string   `json:"l"`
-	SortID             int      `json:"s"`
-	UnlocksFunction    int      `json:"f"`
+	ID                 int    `json:"i" gorm:"primarykey"`
+	Name               string `json:"n"`
+	GenreID            int    `json:"g"`
+	Genre              Genre
+	Location           string `json:"l"`
+	SortID             int    `json:"s"`
+	UnlocksFunction    int    `json:"f"`
 	PercentageComplete int
 	Completed          bool
 }

@@ -21,11 +21,11 @@ func CategorizeQuests(quests []db.Quest) (results CategorizedQuests) {
 	results = make(CategorizedQuests)
 
 	for _, q := range quests {
-		if _, ok := results[q.Category.Section]; !ok {
-			results[q.Category.Section] = make(map[string][]db.Quest)
+		if _, ok := results[q.Genre.Section]; !ok {
+			results[q.Genre.Section] = make(map[string][]db.Quest)
 		}
 
-		results[q.Category.Section][q.Category.Category] = append(results[q.Category.Section][q.Category.Category], q)
+		results[q.Genre.Section][q.Genre.Category] = append(results[q.Genre.Section][q.Genre.Category], q)
 	}
 	
 	return results
