@@ -20,11 +20,11 @@ func RunMigrations(db *gorm.DB) error {
 func FetchUserQuests(db *gorm.DB, user *User) (quests []Quest, err error) {	
 	tx := db.Model(&Quest{}).
 		Joins("Genre").
-		Select("quests.*, CASE WHEN user_quests.quest_id IS NOT NULL THEN true ELSE false END AS completed").
-		Order("Genre.name ASC, sort_id ASC, id ASC")
+		Select("quests.*").
+		Order("Genre.name ASC, sort_key ASC, quests.id ASC")
 
 	if user != nil {
-		tx = tx.Joins("LEFT JOIN user_quests ON quests.id = user_quests.quest_id AND user_quests.user_id = ?", user.ID)
+		tx = tx.Select("CASE WHEN user_quests.quest_id IS NOT NULL THEN true ELSE false END AS completed").Joins("LEFT JOIN user_quests ON quests.id = user_quests.quest_id AND user_quests.user_id = ?", user.ID)
 	}
 
 	if tx.Find(&quests).Error != nil {
@@ -34,7 +34,7 @@ func FetchUserQuests(db *gorm.DB, user *User) (quests []Quest, err error) {
 	return quests, nil
 }
 
-func QuestsInGenre(db *gorm.DB, genreID int) (quests []Quest, err error) {
+func QuestsInGenre(db *gorm.DB, genreID uint) (quests []Quest, err error) {
 	if db.Model(&Quest{}).Find(&quests, &Quest{GenreID: genreID}) != nil {
 		return nil, err
 	}
