@@ -42,6 +42,8 @@ func (h *Handler) DiscordAuth(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, h.discordOauth.AuthCodeURL("state"))
 }
 
+// TODO Rotate API Key Route
+
 func (h *Handler) DiscordAuthCallback(c *gin.Context) {
 	code := c.Query("code")
 	token, err := h.discordOauth.Exchange(c, code)
@@ -70,6 +72,7 @@ func (h *Handler) DiscordAuthCallback(c *gin.Context) {
 		return
 	}
 
+	// TODO Generate api key if first user signup
 	user := db.User{DiscordID: discordUser.Id, Email: discordUser.Email, AvatarHash: discordUser.Avatar}
 	err = h.db.Assign(user).FirstOrCreate(&user, db.User{DiscordID: user.DiscordID}).Error
 	if err != nil {

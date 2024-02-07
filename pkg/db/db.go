@@ -34,7 +34,7 @@ func FetchUserQuests(db *gorm.DB, user *User) (quests []Quest, err error) {
 	return quests, nil
 }
 
-func QuestsInGenre(db *gorm.DB, genreID int) (quests []Quest, err error) {
+func QuestsInGenre(db *gorm.DB, genreID uint) (quests []Quest, err error) {
 	if db.Model(&Quest{}).Find(&quests, &Quest{GenreID: genreID}) != nil {
 		return nil, err
 	}

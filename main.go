@@ -54,9 +54,14 @@ func main() {
 	r.HTMLRender = &templates.TemplRender{}
 	r.Use(ginlogrus.Logger(log), gin.Recovery())
 	r.Use(sessions.Sessions("usersessions", store))
+	r.Use(h.APIKeyAuth)
 	r.Static("/assets", "assets/dist")
-	
-	r.GET("/load", h.LoadData)
+
+	r.PUT("/api/genre", h.Admin, h.UpdateGenreDefiniton)
+	r.PUT("/api/quest", h.Admin, h.UpdateQuestDefinition)
+
+	r.POST("/api/quest/:id", h.UpdateQuest(true))
+	r.DELETE("/api/quest/:id", h.UpdateQuest(false))
 
 	r.GET("/", h.IndexPage)
 

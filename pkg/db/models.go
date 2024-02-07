@@ -8,24 +8,27 @@ type User struct {
 	DiscordID       string
 	AvatarHash      string
 	CharacterID     string
+	APIKey          string
+	Admin           bool
 	CompletedQuests []Quest `gorm:"many2many:user_quests"`
 }
 
 type Genre struct {
-	ID   int `json:"id" gorm:"primarykey"`
-	Name string `json:"name" gorm:"unqueIndex"`
+	ID       uint   `json:"id" gorm:"primarykey"`
+	Name     string `json:"name" gorm:"unqueIndex"`
 	Category string `json:"category" gorm:"index"`
-	Section string `json:"section" gorm:"index"`
+	Section  string `json:"section" gorm:"index"`
 }
 
 type Quest struct {
-	ID                 int    `json:"i" gorm:"primarykey"`
-	Name               string `json:"n"`
-	GenreID            int    `json:"g"`
+	ID                 uint   `json:"id" gorm:"primarykey"`
+	Name               string `json:"name"`
+	GenreID            uint   `json:"genre_id"`
 	Genre              Genre
-	Location           string `json:"l"`
-	SortID             int    `json:"s"`
-	UnlocksFunction    int    `json:"f"`
+	Location           string `json:"location"`
+	SortKey            int    `json:"sort_key"`
 	PercentageComplete int
-	Completed          bool
+
+	// Shadow column filled out per request
+	Completed bool
 }

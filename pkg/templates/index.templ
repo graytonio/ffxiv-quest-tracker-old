@@ -98,6 +98,7 @@ templ QuestCategory(title string, quests []db.Quest) {
 	}
 }
 
+// TODO Show API Key in dropdown
 templ AuthHeader(user *db.User) {
 	if user == nil {
 		<a href="/auth/discord" class="btn btn-square btn-ghost">
