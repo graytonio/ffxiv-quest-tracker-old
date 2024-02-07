@@ -11,7 +11,7 @@ import (
 
 func (h *Handler) Logout(c *gin.Context) {
 	session := sessions.Default(c)
-	session.Delete("user_id")
+	session.Clear()
 	session.Save()
 	c.Redirect(http.StatusTemporaryRedirect, "/")
 }

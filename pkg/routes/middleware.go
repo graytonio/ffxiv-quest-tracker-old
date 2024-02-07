@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/graytonio/ffxivquesttracker/pkg/db"
 )
@@ -17,7 +16,7 @@ func (h *Handler) APIKeyAuth(c *gin.Context) {
 	}
 
 	var user *db.User
-	if err := h.db.Where(&db.User{APIKey: strings.TrimPrefix(apiKey, "Bearer ")}).First(user).Error; err != nil {
+	if err := h.db.Where(&db.User{APIKey: strings.TrimPrefix(apiKey, "Bearer ")}).First(&user).Error; err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -27,20 +26,12 @@ func (h *Handler) APIKeyAuth(c *gin.Context) {
 		return
 	}
 
-	if err := h.setUserSession(sessions.Default(c), user); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
+	c.Set("user", user)
 	c.Next()
 }
 
 func (h *Handler) Admin(c *gin.Context) {
-	user, err := h.getUserFromSession(sessions.Default(c))
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	user := c.MustGet("user").(*db.User)
 
 	if !user.Admin {
 		c.AbortWithStatus(403)

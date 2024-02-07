@@ -14,14 +14,14 @@ type User struct {
 }
 
 type Genre struct {
-	ID       uint   `json:"id" gorm:"primarykey"`
+	ID       int   `json:"id" gorm:"primarykey"`
 	Name     string `json:"name" gorm:"unqueIndex"`
 	Category string `json:"category" gorm:"index"`
 	Section  string `json:"section" gorm:"index"`
 }
 
 type Quest struct {
-	ID                 uint   `json:"id" gorm:"primarykey"`
+	ID                 int   `json:"id" gorm:"primarykey"`
 	Name               string `json:"name"`
 	GenreID            uint   `json:"genre_id"`
 	Genre              Genre
